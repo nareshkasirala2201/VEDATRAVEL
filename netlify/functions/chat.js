@@ -38,7 +38,7 @@ exports.handler = async (event) => {
     }
 
     const endpoint = firstEnvironmentValue(["AZURE_ENDPOINT", "PROJECT_ENDPOINT", "AZURE_PROJECT_ENDPOINT"]);
-    const deployment = firstEnvironmentValue(["AZURE_DEPLOYMENT", "AZURE_MODEL", "PROJECT_DEPLOYMENT"]);
+    const deployment = firstEnvironmentValue(["AZURE_DEPLOYMENT", "AZURE_MODEL", "PROJECT_DEPLOYMENT"]) || "gpt-5-mini";
     const apiKey = firstEnvironmentValue(["AZURE_API_KEY", "PROJECT_APIKEY", "PROJECT_API_KEY", "AZURE_PROJECT_API_KEY"]);
     const missing = [];
     if (!endpoint) missing.push("AZURE_ENDPOINT");
