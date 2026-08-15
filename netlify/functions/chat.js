@@ -17,6 +17,14 @@ function reply(statusCode, body) {
   };
 }
 
+function firstEnvironmentValue(names) {
+  for (const name of names) {
+    const value = process.env[name]?.trim();
+    if (value) return value;
+  }
+  return "";
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return reply(405, { error: "Method not allowed" });
@@ -29,11 +37,15 @@ exports.handler = async (event) => {
       return reply(400, { error: "Send a message to start planning." });
     }
 
-    const endpoint = (process.env.AZURE_ENDPOINT || process.env.PROJECT_ENDPOINT || "").trim();
-    const deployment = (process.env.AZURE_DEPLOYMENT || "").trim();
-    const apiKey = (process.env.AZURE_API_KEY || process.env.PROJECT_APIKEY || "").trim();
-    if (!endpoint || !deployment || !apiKey) {
-      return reply(500, { error: "The travel assistant is not configured." });
+    const endpoint = firstEnvironmentValue(["AZURE_ENDPOINT", "PROJECT_ENDPOINT", "AZURE_PROJECT_ENDPOINT"]);
+    const deployment = firstEnvironmentValue(["AZURE_DEPLOYMENT", "AZURE_MODEL", "PROJECT_DEPLOYMENT"]);
+    const apiKey = firstEnvironmentValue(["AZURE_API_KEY", "PROJECT_APIKEY", "PROJECT_API_KEY", "AZURE_PROJECT_API_KEY"]);
+    const missing = [];
+    if (!endpoint) missing.push("AZURE_ENDPOINT");
+    if (!deployment) missing.push("AZURE_DEPLOYMENT");
+    if (!apiKey) missing.push("AZURE_API_KEY");
+    if (missing.length > 0) {
+      return reply(500, { error: "The travel assistant is not configured.", missing });
     }
 
     const baseUrl = endpoint.replace(/\/$/, "").endsWith("/openai/v1")
